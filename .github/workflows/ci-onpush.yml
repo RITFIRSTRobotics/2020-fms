@@ -21,7 +21,10 @@ jobs:
     runs-on: ubuntu-18.04
     
     steps:
-    - uses: actions/checkout@v2 # checkout the repository
+    - uses: actions/checkout@v1 # checkout the repository
+                                # note: v2 does not support submodules as well
+      with:
+        submodule: true # recursively get submodules
 
     # mark that we're running an on-push build
     - name: Setup

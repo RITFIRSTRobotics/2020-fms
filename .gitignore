@@ -12,3 +12,7 @@ tmp/
 
 # Valgrind outputs
 massif.out.*
+
+# configuration files
+/config.onpush
+/config.full
