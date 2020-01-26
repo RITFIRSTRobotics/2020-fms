@@ -22,11 +22,16 @@ jobs:
     runs-on: ubuntu-18.04
     
     steps:
-    - uses: actions/checkout@v1 # checkout the repository
-                                # note: v2 does not support submodules as well
-      with:
-        submodule: true # recursively get submodules
-    
+    - uses: actions/checkout@v2 # checkout the repository
+
+    # have to checkout the submodule before building (and this is the recommended way)
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recurs
+
     # mark that we're running a full build
     - name: Setup
       run: touch config.full
