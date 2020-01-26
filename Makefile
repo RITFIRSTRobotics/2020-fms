@@ -11,15 +11,11 @@ TESTFLAGS=-g $(CFLAGS)
 
 all: $(OUT_DIR)/fms
 
-$(OUT_DIR)/fms: $(OBJ_DIR)/fms.o $(OBJ_DIR)/net_lowlevel.o
+$(OUT_DIR)/fms: $(OBJ_DIR)/fms.o
 	@mkdir -p $(OUT_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
 $(OBJ_DIR)/fms.o: src/fms.c
-	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(OBJ_DIR)/net_lowlevel.o: src/network/lowlevel.c src/network/lowlevel.h
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -28,7 +24,7 @@ $(OBJ_DIR)/net_lowlevel.o: src/network/lowlevel.c src/network/lowlevel.h
 ### CI recipes
 
 ci-build: $(OUT_DIR)/fms
-ci-test:  ; # empty
+ci-test:  ; # empty
 
 ## Maintence recipes
 
