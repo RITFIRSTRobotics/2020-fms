@@ -8,13 +8,21 @@
 // standards
 #include <stdio.h>
 #include <stdint.h>
+#include <memory.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdbool.h>
 
 // networking
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
+
+// threading
+#include <pthread.h>
+
+// errno
+#include <errno.h>
 
 // local things
 #include "core/network/lowlevel.h"
@@ -36,7 +44,7 @@ typedef struct {
  *
  * @param targs a structure with the pre-configured server socket and handlers
  */
-static void llnet_acceptor_thread(void* _targs) {
+static void* llnet_acceptor_thread(void* _targs) {
     // Setup the accept loop: accept a new connection, notify, spin up new thread
     AcceptorThreadArgs* targs = (AcceptorThreadArgs*) _targs;
     while (true) {
@@ -53,13 +61,15 @@ static void llnet_acceptor_thread(void* _targs) {
         }
 
         // Call on_connect and add to the connection list
-        connection->on_connect(connection);
+        targs->on_connect(connection);
         arraylist_add(connections, connection);
 
         // Spin up listener threads
         llnet_listener_tcp_start(connection);
         llnet_listener_udp_start(connection);
     }
+
+    return NULL;
 }
 
 /**
@@ -76,7 +86,7 @@ void llnet_acceptor_start(void (*on_connect)(NetworkConnection_t*),
 
     // Set the SO_REUSEADDR and SO_REUSEPORT flags (because a resource leaks will happen)
     int opt_value = 1;
-    int err = setsockopt(server_fd, SOL_SOCKET, SOREUSEADDR | SO_REUSEPORT, &opt_value, sizeof(opt_value));
+    int err = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt_value, sizeof(opt_value));
     if (err < 0) {
         fprintf(stderr, "error: could not set socket options: %s\n", strerror(errno));
         close(server_fd);
@@ -92,7 +102,7 @@ void llnet_acceptor_start(void (*on_connect)(NetworkConnection_t*),
     // Bind the socket to accept any incoming connections for the FMS
     err = bind(server_fd, (struct sockaddr*) &addr, sizeof(addr));
     if (err < 0) {
-        fprintf("error: could not bind socket: %s\n", strerror(errno));
+        fprintf(stderr, "error: could not bind socket: %s\n", strerror(errno));
         close(server_fd);
         exit(EXIT_FAILURE);
     }
