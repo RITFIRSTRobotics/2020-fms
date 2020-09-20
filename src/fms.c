@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "core/network/lowlevel.h"
 
 int main(int argc, char* argv[]) {
     // Start off by checking the arguments
